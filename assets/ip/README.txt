@@ -1,20 +1,16 @@
-【IP 图片投放文件夹】
+本目录图片全部来自：乐刻IP设计.docx
+更新文档后运行：python extract_ip_from_docx.py
 
-设计组：把定稿 PNG 按下列文件名覆盖本目录文件即可，网站自动更新。
-
-必交：
-  Hero_网站首屏.png
-  小刻匠_半身定稿.png
-  纸小仙_Q版定稿.png
-  LOGO_方形.png
-  表情包_合集.png
-
-可选：
-  小刻匠_纹样馆头图.png
-  纸小仙_工坊引导.png
-  海报_国内版.png
-  海报_国际版.png
-  头像_主.png
-
-详细规范见：IP设计师任务单.md
-替换步骤见：IP图片替换说明.md
+  Hero_网站首屏.jpeg
+  LOGO_乐刻.jpeg
+  乐笺_三视图.jpeg
+  乐笺_半身定稿.jpeg
+  乐笺_海报用.jpeg
+  乐笺_表情包.jpeg
+  乐笺_设计规范.png
+  小刻灵_Q版定稿.jpeg
+  小刻灵_动作延展.jpeg
+  小刻灵_海报用.jpeg
+  小刻灵_设计规范.png
+  海报_指尖细纹.jpeg
+  海报_细纹千载纸韵乐清.jpeg

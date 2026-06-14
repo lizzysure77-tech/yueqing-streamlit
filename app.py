@@ -17,33 +17,19 @@ CHART_PATH = BASE_DIR / "keyword_analysis.png"
 IP_DIR = BASE_DIR / "assets" / "ip"
 
 IP_ASSETS = {
-    "hero_bg": [
-        "海报_细纹千载纸韵乐清.jpeg",
-        "Hero_网站首屏.jpeg",
-        "海报_国内版.png",
-    ],
-    "section_bg": [
-        "海报_指尖细纹.jpeg",
-        "海报_细纹千载纸韵乐清.jpeg",
-    ],
-    "lejian": [
-        "小刻匠_半身定稿.png",
-        "乐笺_半身定稿.jpeg",
-        "乐笺_海报用.jpeg",
-    ],
-    "xiaokeling": [
-        "纸小仙_Q版定稿.png",
-        "小刻灵_Q版定稿.jpeg",
-        "小刻灵_海报用.jpeg",
-    ],
-    "logo": ["LOGO_方形.png", "LOGO_乐刻.jpeg"],
-    "lejian_emoji": ["表情包_合集.png", "乐笺_表情包.jpeg"],
+    # 全部素材来自 乐刻IP设计.docx（运行 extract_ip_from_docx.py 同步）
+    "hero_bg": ["海报_细纹千载纸韵乐清.jpeg", "Hero_网站首屏.jpeg"],
+    "section_bg": ["海报_指尖细纹.jpeg", "海报_细纹千载纸韵乐清.jpeg"],
+    "lejian": ["乐笺_半身定稿.jpeg", "乐笺_海报用.jpeg"],
+    "xiaokeling": ["小刻灵_Q版定稿.jpeg", "小刻灵_海报用.jpeg"],
+    "logo": ["LOGO_乐刻.jpeg"],
+    "lejian_emoji": ["乐笺_表情包.jpeg"],
     "xiaokeling_actions": ["小刻灵_动作延展.jpeg"],
     "lejian_spec": ["乐笺_设计规范.png"],
     "xiaokeling_spec": ["小刻灵_设计规范.png"],
     "lejian_turn": ["乐笺_三视图.jpeg"],
-    "patterns_header": ["小刻匠_纹样馆头图.png", "小刻匠_半身定稿.png"],
-    "workshop_guide": ["纸小仙_工坊引导.png", "纸小仙_Q版定稿.png"],
+    "patterns_header": ["乐笺_半身定稿.jpeg"],
+    "workshop_guide": ["小刻灵_Q版定稿.jpeg"],
 }
 
 BRAND = {
