@@ -395,6 +395,9 @@ def render_ip_showcase_grid() -> None:
             with col:
                 key, label, use_cutout, soft, size = item
                 show_cutout(key, label, size, cutout=use_cutout, soft=soft)
+
+
+def section_with_bg(bg_key: str, inner_html: str, opacity_style: str = "0.14") -> None:
     bg_uri = asset_uri(bg_key, cutout=False)
     bg_style = f"background-image: url('{bg_uri}');" if bg_uri else ""
     st.markdown(
