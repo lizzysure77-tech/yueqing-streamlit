@@ -33,7 +33,7 @@ def _color_dist(rgb: tuple[int, int, int], bg: tuple[int, int, int]) -> float:
 def _flood_background_mask(
     img: Image.Image,
     bg: tuple[int, int, int],
-    tolerance: float = 42.0,
+    tolerance: float = 36.0,
 ) -> list[bool]:
     w, h = img.size
     px = img.load()
@@ -82,30 +82,31 @@ def _flood_background_mask(
     return mask
 
 
-def _build_alpha(img: Image.Image, bg_mask: list[bool], feather: float = 38.0) -> Image.Image:
+def _build_alpha(img: Image.Image, bg_mask: list[bool], feather: float = 22.0) -> Image.Image:
+    """仅依据边缘连通背景生成透明，避免脸部浅色被误抠。"""
     w, h = img.size
-    px = img.load()
-    bg = _sample_background(img)
     alpha = Image.new("L", (w, h), 0)
     apx = alpha.load()
 
     for y in range(h):
         for x in range(w):
             i = y * w + x
-            if bg_mask[i]:
-                apx[x, y] = 0
-                continue
-            r, g, b = px[x, y][:3]
-            d = _color_dist((r, g, b), bg)
-            if d < 18:
-                apx[x, y] = 0
-            elif d < feather:
-                apx[x, y] = int(255 * (d - 18) / (feather - 18))
-            else:
+            if not bg_mask[i]:
                 apx[x, y] = 255
 
-    alpha = alpha.filter(ImageFilter.GaussianBlur(radius=1.2))
-    return alpha
+    # 仅在前景边缘做轻微羽化
+    for y in range(h):
+        for x in range(w):
+            if apx[x, y] == 0:
+                continue
+            for nx, ny in ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)):
+                if 0 <= nx < w and 0 <= ny < h:
+                    j = ny * w + nx
+                    if bg_mask[j]:
+                        apx[x, y] = min(apx[x, y], 200)
+                        break
+
+    return alpha.filter(ImageFilter.GaussianBlur(radius=0.6))
 
 
 def _trim_alpha_bbox(img: Image.Image, pad: int = 6) -> Image.Image:

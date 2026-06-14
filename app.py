@@ -25,7 +25,7 @@ IP_ASSETS = {
     # 全部素材来自 乐刻IP设计.docx（运行 extract_ip_from_docx.py 同步）
     "hero_bg": ["海报_细纹千载纸韵乐清.jpeg", "Hero_网站首屏.jpeg"],
     "section_bg": ["海报_指尖细纹.jpeg", "海报_细纹千载纸韵乐清.jpeg"],
-    "lejian": ["乐笺_全身定稿.jpeg", "乐笺_海报用.jpeg"],
+    "lejian": ["乐笺_海报用.jpeg", "乐笺_全身定稿.jpeg"],
     "xiaokeling": ["小刻灵_Q版定稿.jpeg", "小刻灵_海报用.jpeg"],
     "logo": ["LOGO_乐刻.jpeg"],
     "lejian_emoji": ["乐笺_半身定稿.jpeg", "乐笺_表情包.jpeg"],
@@ -53,11 +53,11 @@ BRAND = {
 # IP 设计效果 8 张（与成果展示.html 一致）
 IP_SHOWCASE = [
     ("logo", "① 乐刻 LOGO", False, False, ""),
-    ("lejian", "② 乐笺 · 全身定稿", True, True, "ip-cutout-lg"),
-    ("lejian_turn", "③ 乐笺 · 三视图", True, True, "ip-cutout-md"),
+    ("lejian", "② 乐笺 · 全身定稿", True, False, "ip-cutout-lg"),
+    ("lejian_turn", "③ 乐笺 · 三视图", True, False, "ip-cutout-md"),
     ("lejian_emoji", "④ 乐笺 · 表情包合图", False, False, "ip-cutout-md"),
-    ("xiaokeling", "⑤ 小刻灵 · Q 版定稿", True, True, "ip-cutout-lg"),
-    ("xiaokeling_actions", "⑥ 小刻灵 · 动作延展", True, True, "ip-cutout-md"),
+    ("xiaokeling", "⑤ 小刻灵 · Q 版定稿", True, False, "ip-cutout-lg"),
+    ("xiaokeling_actions", "⑥ 小刻灵 · 动作延展", True, False, "ip-cutout-md"),
     ("poster_main", "⑦ 海报 · 细纹千载，纸韵乐清", False, True, "ip-cutout-poster"),
     ("poster_event", "⑧ 海报 · 指尖细纹", False, True, "ip-cutout-poster"),
 ]
@@ -232,8 +232,8 @@ def inject_styles(page_bg_uri: str | None) -> None:
             filter: drop-shadow(0 6px 18px rgba(44, 62, 50, 0.1));
         }}
         .ip-cutout-soft {{
-            opacity: 0.72;
-            filter: drop-shadow(0 4px 14px rgba(44, 62, 50, 0.08));
+            opacity: 0.94;
+            filter: drop-shadow(0 4px 14px rgba(44, 62, 50, 0.1));
         }}
         .ip-cutout-sm {{
             max-height: 88px;
@@ -417,9 +417,8 @@ def render_hero() -> None:
     lejian_uri = asset_uri("lejian", cutout=True)
     logo_uri = asset_uri("logo", cutout=False)
     xkl_uri = asset_uri("xiaokeling", cutout=True)
-    soft_cls = " ip-cutout-soft"
     lejian_img = (
-        f'<div class="cutout-wrap"><img src="{lejian_uri}" class="ip-cutout{soft_cls}" alt="乐笺"/></div>'
+        f'<div class="cutout-wrap"><img src="{lejian_uri}" class="ip-cutout" alt="乐笺"/></div>'
         if lejian_uri
         else ""
     )
@@ -429,7 +428,7 @@ def render_hero() -> None:
         else ""
     )
     xkl_img = (
-        f'<div class="cutout-wrap"><img src="{xkl_uri}" class="ip-cutout{soft_cls}" alt="小刻灵"/></div>'
+        f'<div class="cutout-wrap"><img src="{xkl_uri}" class="ip-cutout" alt="小刻灵"/></div>'
         if xkl_uri
         else ""
     )
