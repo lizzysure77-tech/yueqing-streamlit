@@ -12,6 +12,11 @@ from pathlib import Path
 import streamlit as st
 from PIL import Image
 
+try:
+    from ip_cutout import remove_paper_background
+except ImportError:
+    remove_paper_background = None
+
 BASE_DIR = Path(__file__).parent
 CHART_PATH = BASE_DIR / "keyword_analysis.png"
 IP_DIR = BASE_DIR / "assets" / "ip"
@@ -23,13 +28,15 @@ IP_ASSETS = {
     "lejian": ["乐笺_全身定稿.jpeg", "乐笺_海报用.jpeg"],
     "xiaokeling": ["小刻灵_Q版定稿.jpeg", "小刻灵_海报用.jpeg"],
     "logo": ["LOGO_乐刻.jpeg"],
-    "lejian_emoji": ["乐笺_表情包.jpeg"],
+    "lejian_emoji": ["乐笺_半身定稿.jpeg", "乐笺_表情包.jpeg"],
     "xiaokeling_actions": ["小刻灵_动作延展.jpeg"],
     "lejian_spec": ["乐笺_设计规范.png"],
     "xiaokeling_spec": ["小刻灵_设计规范.png"],
     "lejian_turn": ["乐笺_三视图.jpeg"],
     "patterns_header": ["乐笺_全身定稿.jpeg"],
     "workshop_guide": ["小刻灵_Q版定稿.jpeg"],
+    "poster_main": ["海报_细纹千载纸韵乐清.jpeg", "Hero_网站首屏.jpeg"],
+    "poster_event": ["海报_指尖细纹.jpeg"],
 }
 
 BRAND = {
@@ -39,7 +46,21 @@ BRAND = {
     "slogan_en": "Yueke, Discover Oriental Art",
     "heritage": "乐清细纹刻纸 · 国家级非遗",
     "tagline": "细纹千载，纸韵乐清",
+    "essence": "瓯越大地上的文明之花，一针一纸承续千年文脉。",
+    "hero_verse": "细线游走处，是篆刻之趣；跃然纸上时，是所思所想。",
 }
+
+# IP 设计效果 8 张（与成果展示.html 一致）
+IP_SHOWCASE = [
+    ("logo", "① 乐刻 LOGO", False, False, ""),
+    ("lejian", "② 乐笺 · 全身定稿", True, True, "ip-cutout-lg"),
+    ("lejian_turn", "③ 乐笺 · 三视图", True, True, "ip-cutout-md"),
+    ("lejian_emoji", "④ 乐笺 · 表情包合图", False, False, "ip-cutout-md"),
+    ("xiaokeling", "⑤ 小刻灵 · Q 版定稿", True, True, "ip-cutout-lg"),
+    ("xiaokeling_actions", "⑥ 小刻灵 · 动作延展", True, True, "ip-cutout-md"),
+    ("poster_main", "⑦ 海报 · 细纹千载，纸韵乐清", False, True, "ip-cutout-poster"),
+    ("poster_event", "⑧ 海报 · 指尖细纹", False, True, "ip-cutout-poster"),
+]
 
 COLORS = {
     "paper": "#F5F2E8",
@@ -49,6 +70,17 @@ COLORS = {
     "accent_light": "#C8D9CE",
     "line": "#D8D0C4",
     "mist": "#EDE8DF",
+}
+
+
+CUTOUT_DIR = IP_DIR / "cutout"
+CUTOUT_FILES = {
+    "lejian": "lejian_full.png",
+    "lejian_turn": "lejian_turn.png",
+    "xiaokeling": "xiaokeling.png",
+    "xiaokeling_actions": "xiaokeling_actions.png",
+    "patterns_header": "lejian_full.png",
+    "workshop_guide": "xiaokeling.png",
 }
 
 
@@ -63,16 +95,19 @@ def find_ip(candidates: list[str]) -> Path | None:
 @st.cache_data(show_spinner=False)
 def file_to_data_uri(path_str: str, as_png: bool = False, cutout: bool = False) -> str:
     path = Path(path_str)
-    img = Image.open(path).convert("RGBA")
-    if cutout:
-        pixels = img.load()
-        for y in range(img.height):
-            for x in range(img.width):
-                r, g, b, a = pixels[x, y]
-                if a < 20:
-                    continue
-                if r > 228 and g > 222 and b > 210:
-                    pixels[x, y] = (r, g, b, 0)
+    if cutout and remove_paper_background is not None:
+        img = remove_paper_background(path)
+    else:
+        img = Image.open(path).convert("RGBA")
+        if cutout:
+            pixels = img.load()
+            for y in range(img.height):
+                for x in range(img.width):
+                    r, g, b, a = pixels[x, y]
+                    if a < 20:
+                        continue
+                    if r > 228 and g > 222 and b > 210:
+                        pixels[x, y] = (r, g, b, 0)
     buf = io.BytesIO()
     if as_png or cutout:
         img.save(buf, format="PNG")
@@ -85,6 +120,10 @@ def file_to_data_uri(path_str: str, as_png: bool = False, cutout: bool = False) 
 
 
 def asset_uri(key: str, cutout: bool = False) -> str | None:
+    if cutout and key in CUTOUT_FILES:
+        baked = CUTOUT_DIR / CUTOUT_FILES[key]
+        if baked.exists():
+            return file_to_data_uri(str(baked), as_png=True, cutout=False)
     path = find_ip(IP_ASSETS[key])
     if not path:
         return None
@@ -190,7 +229,11 @@ def inject_styles(page_bg_uri: str | None) -> None:
             object-fit: contain;
             display: block;
             margin: 0 auto;
-            filter: drop-shadow(0 10px 28px rgba(44, 62, 50, 0.15));
+            filter: drop-shadow(0 6px 18px rgba(44, 62, 50, 0.1));
+        }}
+        .ip-cutout-soft {{
+            opacity: 0.72;
+            filter: drop-shadow(0 4px 14px rgba(44, 62, 50, 0.08));
         }}
         .ip-cutout-sm {{
             max-height: 88px;
@@ -201,6 +244,36 @@ def inject_styles(page_bg_uri: str | None) -> None:
         }}
         .ip-cutout-lg {{
             max-height: 300px;
+        }}
+        .ip-cutout-poster {{
+            max-height: 200px;
+            opacity: 0.82;
+        }}
+        .brand-verse {{
+            background: rgba(255, 255, 255, 0.68);
+            border: 1px solid {COLORS["line"]};
+            border-radius: 10px;
+            padding: 1.1rem 1.25rem;
+            margin: 0.5rem 0 1.2rem;
+            text-align: center;
+            color: {COLORS["ink_soft"]};
+            font-size: 0.95rem;
+            line-height: 1.85;
+        }}
+        .brand-verse strong {{
+            color: {COLORS["accent"]};
+        }}
+        .wordplay-card {{
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid {COLORS["line"]};
+            border-radius: 8px;
+            padding: 1rem 1.15rem;
+            margin-bottom: 0.85rem;
+        }}
+        .wordplay-card h4 {{
+            margin: 0 0 0.45rem;
+            color: {COLORS["accent"]};
+            font-size: 0.95rem;
         }}
         .cutout-label {{
             font-size: 0.75rem;
@@ -261,12 +334,15 @@ def show_cutout(
     label: str = "",
     size: str = "",
     cutout: bool = True,
+    soft: bool = False,
 ) -> None:
     uri = asset_uri(key, cutout=cutout)
     if not uri:
         st.caption(f"（缺少素材：{key}）")
         return
     cls = f"ip-cutout {size}".strip()
+    if soft:
+        cls += " ip-cutout-soft"
     label_html = f'<div class="cutout-label">{label}</div>' if label else ""
     st.markdown(
         f'<div class="cutout-wrap"><img src="{uri}" class="{cls}" alt="{label or key}"/>{label_html}</div>',
@@ -274,7 +350,51 @@ def show_cutout(
     )
 
 
-def section_with_bg(bg_key: str, inner_html: str, opacity_style: str = "0.14") -> None:
+def render_brand_essence() -> None:
+    st.markdown(
+        f"""
+        <div class="brand-verse">
+            <p><strong>{BRAND["essence"]}</strong></p>
+            <p>{BRAND["hero_verse"]}</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def brand_wordplay_markdown() -> str:
+    return """
+### 乐刻 · 同音不同字，同字不同音
+
+| 字 | 读音与意象 | 品牌内涵 |
+|:---|:---|:---|
+| **乐** | 乐清故土；以刻为**乐**（lè） | 地域根脉与手艺之乐、观纹之乐 |
+| **刻** | 刀尖**刻**画；时光**刻**印 | 工艺之本、匠心之痕 |
+| **乐刻** | 乐在其中，**刻**下时光 | 双关：乐土印记 × 以刻为乐 |
+
+在瓯越山水之间，细纹刻纸如一朵静放的**文明之花**——不喧哗，却在方寸纸面开满纹样。
+
+---
+
+### 乐笺 · 纸上有情，跃然纸上
+
+| 字 | 含义 | IP 内涵 |
+|:---|:---|:---|
+| **乐** | 与品牌同脉 | 乐刻精神的拟人化身 |
+| **笺** | 信笺、纸笺 | 以纸为媒，承托心绪与纹样 |
+
+**篆刻之趣**分两层：一是**过程**——刀尖游走、细线层叠时的专注与沉浸；二是**成品**——纹饰成形的惊艳与圆满。  
+所思所想，不必多言，皆能**跃然纸上**；一纸细纹，既是技艺，也是情感。
+"""
+
+
+def render_ip_showcase_grid() -> None:
+    for row_start in (0, 4):
+        cols = st.columns(4)
+        for col, item in zip(cols, IP_SHOWCASE[row_start:row_start + 4]):
+            with col:
+                key, label, use_cutout, soft, size = item
+                show_cutout(key, label, size, cutout=use_cutout, soft=soft)
     bg_uri = asset_uri(bg_key, cutout=False)
     bg_style = f"background-image: url('{bg_uri}');" if bg_uri else ""
     st.markdown(
@@ -293,10 +413,10 @@ def render_hero() -> None:
     bg_uri = asset_uri("hero_bg", cutout=False)
     lejian_uri = asset_uri("lejian", cutout=True)
     logo_uri = asset_uri("logo", cutout=False)
-    xkl_uri = asset_uri("xiaokeling")
-    bg_div = f'<div class="hero-bg" style="background-image:url(\'{bg_uri}\');"></div>' if bg_uri else ""
+    xkl_uri = asset_uri("xiaokeling", cutout=True)
+    soft_cls = " ip-cutout-soft"
     lejian_img = (
-        f'<div class="cutout-wrap"><img src="{lejian_uri}" class="ip-cutout" alt="乐笺"/></div>'
+        f'<div class="cutout-wrap"><img src="{lejian_uri}" class="ip-cutout{soft_cls}" alt="乐笺"/></div>'
         if lejian_uri
         else ""
     )
@@ -306,10 +426,11 @@ def render_hero() -> None:
         else ""
     )
     xkl_img = (
-        f'<div class="cutout-wrap"><img src="{xkl_uri}" class="ip-cutout" alt="小刻灵"/></div>'
+        f'<div class="cutout-wrap"><img src="{xkl_uri}" class="ip-cutout{soft_cls}" alt="小刻灵"/></div>'
         if xkl_uri
         else ""
     )
+    bg_div = f'<div class="hero-bg" style="background-image:url(\'{bg_uri}\');"></div>' if bg_uri else ""
     st.markdown(
         f"""
         <div class="hero-panel">
@@ -325,6 +446,9 @@ def render_hero() -> None:
                     <div class="hero-slogan">{BRAND["slogan"]}</div>
                     <p class="hero-sub">{BRAND["slogan_en"]}</p>
                     <p class="hero-sub">{BRAND["tagline"]}</p>
+                    <p class="hero-sub" style="font-size:0.82rem;margin-top:0.45rem;">
+                        {BRAND["essence"]}
+                    </p>
                     {logo_img}
                 </div>
                 <div>{xkl_img}<div class="cutout-label">辅 IP · 小刻灵</div></div>
@@ -336,51 +460,50 @@ def render_hero() -> None:
 
 
 def tab_brand_story() -> None:
-    inner = f"""
+    inner = """
         <div class="section-title">品牌故事</div>
-        <p><strong>乐刻</strong>缘起于非遗传承人张晓朵，与乐清细纹刻纸相伴半生的坚守。</p>
-        <p>出身艺术世家，八岁执刀，与龙船花纹、细纹刻纸结缘。数十年沉心古法，复刻《清明上河图》长卷，
+        <p>雁荡山下，瓯江之畔，<strong>乐刻</strong>缘起于非遗传承人张晓朵与乐清细纹刻纸相伴半生的坚守。
+        这里是瓯越大地上的文明之花——一纸细纹，承载山水灵秀与千年手艺人文。</p>
+        <p>出身艺术世家，八岁执刀，与龙船花纹结缘。数十年沉心古法，复刻《清明上河图》长卷；
         将公益课堂送进校园与研学营地，让刻纸纹样走进水杯、杯垫与文创日常。</p>
-        <ul>
-            <li><strong>乐</strong>：故土乐清，以刻为乐，盼非遗重获欢喜</li>
-            <li><strong>刻</strong>：指尖匠心，敬畏古法，接续千年文脉</li>
-        </ul>
+        <div class="wordplay-card">
+            <h4>乐刻 · 一字多义</h4>
+            <p><strong>乐</strong>：乐清故土；以刻为<strong>乐</strong>；愿人阅纹而生喜悦。<br>
+            <strong>刻</strong>：刀尖刻画；时光刻印；一笔一刻见匠心。<br>
+            同音不同字、同字不同音——<strong>乐刻</strong>，既是乐土印记，也是以刻为乐。</p>
+        </div>
+        <div class="wordplay-card">
+            <h4>乐笺 · 跃然纸上</h4>
+            <p><strong>笺</strong>者，信笺、纸笺；纸为媒，情为墨。细线游走是<strong>篆刻之趣</strong>（过程），
+            纹饰成形是<strong>成品之悦</strong>；所思所想，皆可跃然纸上，凝于细纹。</p>
+        </div>
         <p>乐刻以龙船花纹为根基，萃取雁荡灵秀、瓯江温婉，坚守「细如发丝、密如蛛网」之质感，
-        同时让非遗走出展厅，走进年轻人的生活。</p>
+        让非遗走出展厅，走进年轻人的生活。</p>
     """
     section_with_bg("section_bg", inner)
+    st.markdown(brand_wordplay_markdown())
 
 
 def tab_ip_design() -> None:
     st.markdown('<div class="section-title">IP 设计 · 乐笺 & 小刻灵</div>', unsafe_allow_html=True)
-
-    st.markdown("### 主 IP · 乐笺")
     st.markdown(
-        "以传承人张晓朵为原型。米白旗袍、青瓷蓝镶边、细纹刻刀，温婉灵动。"
-        "**乐**取品牌名，**笺**指纸张——以纸为媒，刻见东方。"
+        """
+**乐笺**是乐刻主 IP，以传承人张晓朵为原型：米白旗袍、青瓷蓝镶边、手持刻刀，温婉灵动。  
+**小刻灵**是辅 IP，纸张精灵，负责年轻化科普与工坊引导。  
+一字一笺、一笔一刻——同音不同字，同字不同音，让瓯越文明之花跃然纸上。
+        """
     )
-    c1, c2 = st.columns(2)
-    with c1:
-        show_cutout("lejian", "乐笺 · 半身定稿", "ip-cutout-lg")
-    with c2:
-        show_cutout("lejian_turn", "三视图", "ip-cutout-md", cutout=True)
-    with st.expander("乐笺表情包"):
-        show_cutout("lejian_emoji", "", "ip-cutout-md", cutout=False)
-    with st.expander("乐笺设计规范（参考）"):
-        show_cutout("lejian_spec", "", "ip-cutout-md", cutout=False)
+    st.markdown(brand_wordplay_markdown())
 
-    st.markdown("### 辅 IP · 小刻灵")
-    st.markdown(
-        "纸张拟人精灵，鎏金国风衣裙与蝶翼，指尖飘散纸屑光点。"
-        "主攻抖音、小红书科普，用年轻化表达消解非遗距离感。"
-    )
-    c3, c4 = st.columns(2)
-    with c3:
-        show_cutout("xiaokeling", "小刻灵 · Q 版定稿", "ip-cutout-lg")
-    with c4:
-        show_cutout("xiaokeling_actions", "动作延展", "ip-cutout-md", cutout=True)
-    with st.expander("小刻灵设计规范（参考）"):
-        show_cutout("xiaokeling_spec", "", "ip-cutout-md", cutout=False)
+    st.markdown("#### IP 设计效果（8 张定稿 · 与成果展示一致）")
+    render_ip_showcase_grid()
+
+    with st.expander("乐笺 / 小刻灵 设计规范（参考大图）"):
+        c1, c2 = st.columns(2)
+        with c1:
+            show_cutout("lejian_spec", "乐笺设计规范", "ip-cutout-md", cutout=False)
+        with c2:
+            show_cutout("xiaokeling_spec", "小刻灵设计规范", "ip-cutout-md", cutout=False)
 
 
 def tab_patterns() -> None:
@@ -449,7 +572,7 @@ def main() -> None:
     with st.sidebar:
         show_cutout("logo", "乐刻", "ip-cutout-sm", cutout=False)
         st.markdown(f"### {BRAND['name']}")
-        st.caption(BRAND["slogan"])
+        st.caption(f"{BRAND['slogan']} · {BRAND['essence']}")
         st.divider()
         nav = st.radio(
             "导航",
@@ -468,6 +591,7 @@ def main() -> None:
         st.caption("乐清细纹刻纸数字文化馆 · 原型")
 
     render_hero()
+    render_brand_essence()
 
     pages = {
         "首页总览": lambda: None,
