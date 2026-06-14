@@ -26,7 +26,11 @@ IMAGE_MAP = {
     "image12.jpeg": "小刻灵_海报用.jpeg",
 }
 
-ALLOWED = set(IMAGE_MAP.values()) | {"Hero_网站首屏.jpeg", "README.txt"}
+ALLOWED = set(IMAGE_MAP.values()) | {
+    "Hero_网站首屏.jpeg",
+    "乐笺_全身定稿.jpeg",
+    "README.txt",
+}
 
 
 def main() -> None:
@@ -63,6 +67,11 @@ def main() -> None:
         + "\n".join(f"  {v}" for v in sorted(ALLOWED - {"README.txt"})),
         encoding="utf-8",
     )
+
+    # 从合图裁出乐笺全身像（首屏展示）
+    import crop_lejian_fullbody
+
+    crop_lejian_fullbody.main()
     print(f"Done. {len(list(OUT.iterdir()))} files.")
 
 

@@ -20,7 +20,7 @@ IP_ASSETS = {
     # 全部素材来自 乐刻IP设计.docx（运行 extract_ip_from_docx.py 同步）
     "hero_bg": ["海报_细纹千载纸韵乐清.jpeg", "Hero_网站首屏.jpeg"],
     "section_bg": ["海报_指尖细纹.jpeg", "海报_细纹千载纸韵乐清.jpeg"],
-    "lejian": ["乐笺_半身定稿.jpeg", "乐笺_海报用.jpeg"],
+    "lejian": ["乐笺_全身定稿.jpeg", "乐笺_海报用.jpeg"],
     "xiaokeling": ["小刻灵_Q版定稿.jpeg", "小刻灵_海报用.jpeg"],
     "logo": ["LOGO_乐刻.jpeg"],
     "lejian_emoji": ["乐笺_表情包.jpeg"],
@@ -28,7 +28,7 @@ IP_ASSETS = {
     "lejian_spec": ["乐笺_设计规范.png"],
     "xiaokeling_spec": ["小刻灵_设计规范.png"],
     "lejian_turn": ["乐笺_三视图.jpeg"],
-    "patterns_header": ["乐笺_半身定稿.jpeg"],
+    "patterns_header": ["乐笺_全身定稿.jpeg"],
     "workshop_guide": ["小刻灵_Q版定稿.jpeg"],
 }
 
@@ -291,7 +291,7 @@ def section_with_bg(bg_key: str, inner_html: str, opacity_style: str = "0.14") -
 
 def render_hero() -> None:
     bg_uri = asset_uri("hero_bg", cutout=False)
-    lejian_uri = asset_uri("lejian")
+    lejian_uri = asset_uri("lejian", cutout=True)
     logo_uri = asset_uri("logo", cutout=False)
     xkl_uri = asset_uri("xiaokeling")
     bg_div = f'<div class="hero-bg" style="background-image:url(\'{bg_uri}\');"></div>' if bg_uri else ""
