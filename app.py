@@ -72,6 +72,16 @@ COLORS = {
     "mist": "#EDE8DF",
 }
 
+# 面向客户展示的导航（不含关键词数据图；团队内部分析加 ?dev=1）
+CUSTOMER_NAV = [
+    "首页总览",
+    "品牌故事",
+    "IP 设计",
+    "纹样数字馆",
+    "云端工坊",
+    "我的家乡 UGC",
+]
+
 
 CUTOUT_DIR = IP_DIR / "cutout"
 CUTOUT_FILES = {
@@ -512,7 +522,7 @@ def tab_patterns() -> None:
     section_with_bg(
         "hero_bg",
         '<div class="section-title">纹样数字馆</div>'
-        '<p style="color:#4A5D52;">龙船花纹样 · 传统吉祥 / 民俗场景 / 现代创新</p>',
+        '<p style="color:#4A5D52;">龙船花纹样 · 瓯越吉祥纹样典藏 · 传统 / 民俗 / 现代创新</p>',
         opacity_style="0.12",
     )
     show_cutout("patterns_header", "纹样导览", "ip-cutout-md")
@@ -523,6 +533,7 @@ def tab_patterns() -> None:
         st.info("节庆窗花 · 民俗场景")
     with c3:
         st.info("新中式 · 国风纹样素材")
+    st.caption("纹样可赏、可学、可下载——让瓯越文明之花绽放在当代设计之中。")
 
 
 def tab_workshop() -> None:
@@ -542,22 +553,54 @@ def tab_workshop() -> None:
     )
     if st.button("预约线下研学", use_container_width=True):
         st.success("演示：预约已提交")
+    st.caption("在过程里感受篆刻之趣，在成品里看见所思所想。")
 
 
 def tab_hometown() -> None:
     st.markdown('<div class="section-title">我的家乡 UGC</div>', unsafe_allow_html=True)
     show_cutout("lejian_emoji", "", "ip-cutout-sm", cutout=False)
-    st.text_area("写下你与乐清细纹刻纸的故事", height=100, placeholder="我爱我的家乡…")
+    st.text_area(
+        "写下你与乐清细纹刻纸的故事",
+        height=100,
+        placeholder="瓯越山水、细纹刻纸、家乡记忆……所思所想，跃然纸上。",
+    )
     st.multiselect("话题", ["#乐刻", "#非遗新造", "#国潮手作", "#乐清细纹刻纸"])
     if st.button("发布到留言墙", use_container_width=True):
         st.success("投稿已收录（演示）")
 
 
 def tab_analytics() -> None:
+    """仅团队内部分析用，客户演示默认不展示。"""
     st.markdown('<div class="section-title">关键词权重分析</div>', unsafe_allow_html=True)
+    st.caption("内部 SEO 分析 · 不面向客户公开展示")
     if CHART_PATH.exists():
         st.image(str(CHART_PATH), use_container_width=True)
     st.caption("架构推导见 wireframe_derivation_report.txt")
+
+
+def analytics_enabled() -> bool:
+    return st.query_params.get("dev", "") == "1"
+
+
+def build_nav() -> list[str]:
+    nav = CUSTOMER_NAV.copy()
+    if analytics_enabled():
+        nav.append("关键词分析")
+    return nav
+
+
+def build_pages() -> dict:
+    pages = {
+        "首页总览": lambda: None,
+        "品牌故事": tab_brand_story,
+        "IP 设计": tab_ip_design,
+        "纹样数字馆": tab_patterns,
+        "云端工坊": tab_workshop,
+        "我的家乡 UGC": tab_hometown,
+    }
+    if analytics_enabled():
+        pages["关键词分析"] = tab_analytics
+    return pages
 
 
 def main() -> None:
@@ -578,36 +621,20 @@ def main() -> None:
         st.divider()
         nav = st.radio(
             "导航",
-            [
-                "首页总览",
-                "品牌故事",
-                "IP 设计",
-                "纹样数字馆",
-                "云端工坊",
-                "我的家乡 UGC",
-                "关键词分析",
-            ],
+            build_nav(),
             label_visibility="collapsed",
         )
         st.divider()
-        st.caption("乐清细纹刻纸数字文化馆 · 原型")
+        st.caption("乐清细纹刻纸数字文化馆")
 
     render_hero()
     render_brand_essence()
 
-    pages = {
-        "首页总览": lambda: None,
-        "品牌故事": tab_brand_story,
-        "IP 设计": tab_ip_design,
-        "纹样数字馆": tab_patterns,
-        "云端工坊": tab_workshop,
-        "我的家乡 UGC": tab_hometown,
-        "关键词分析": tab_analytics,
-    }
+    pages = build_pages()
 
     if nav == "首页总览":
-        t1, t2, t3, t4, t5 = st.tabs(
-            ["品牌故事", "IP 设计", "纹样数字馆", "云端工坊", "关键词分析"]
+        t1, t2, t3, t4 = st.tabs(
+            ["品牌故事", "IP 设计", "纹样数字馆", "云端工坊"]
         )
         with t1:
             tab_brand_story()
@@ -617,13 +644,11 @@ def main() -> None:
             tab_patterns()
         with t4:
             tab_workshop()
-        with t5:
-            tab_analytics()
     else:
         pages[nav]()
 
     st.divider()
-    st.caption("数字化营销课程作业 · 乐刻品牌 IP · Streamlit 原型")
+    st.caption("乐刻 · 乐清细纹刻纸数字文化馆")
 
 
 if __name__ == "__main__":
